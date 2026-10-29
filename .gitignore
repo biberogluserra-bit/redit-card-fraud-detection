@@ -1,0 +1,9 @@
+# Research dataset: download separately from original OpenML/Kaggle source
+/data/
+/results/
+/_smoke_test_only/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+.venv/

@@ -10,6 +10,14 @@ if meta['study_status']!='REAL_DATA':
     raise RuntimeError('Real data results required')
 summary=pd.read_csv(out/'cv_summary.csv')
 final=pd.read_csv(out/'final_untouched_test_results.csv')
+intervals=pd.read_csv(out/'test_bootstrap_confidence_intervals.csv')
+raw=pd.read_csv(out/'cv_repeated_results.csv')
+if raw.groupby('model').seed.nunique().ne(5).any() or raw.shape[0]!=30:
+    raise RuntimeError('Expected five repetitions for each of six methods')
+by_model=summary.set_index('model')
+base=by_model.loc['LR_base']
+tuned=by_model.loc['LR_threshold_F1']
+winner=final.set_index('model').loc[meta['selected_by_dev_cv_ap']]
 def table(frame):
     return '| '+' | '.join(frame.columns)+' |\n|'+ '|'.join(['---']*len(frame.columns))+'|\n'+ '\n'.join('| '+' | '.join(str(v) for v in row)+' |' for row in frame.itertuples(index=False,name=None))
 display=pd.DataFrame({'Yöntem':summary.model})
@@ -23,9 +31,9 @@ Tarih: 11 Kasım 2026. Durum: gerçek veride tamamlanmış karşılaştırma; ö
 
 ## Amaç ve veri
 
-Amaç, aşırı dengesiz kredi kartı işlemlerinde örnekleme, sınıf ağırlıkları ve karar eşiğinin etkisini karşılaştırmaktır. OpenML #1597 ham ARFF dosyası kullanılmıştır. İncelenen veri {meta['rows']} kayıt, {meta['fraud']} pozitif sınıf ve {meta['features']} model girdisi içerir. Pozitif oranı {meta['fraud_rate']:.6%} olarak hesaplanmıştır.
+Amaç, aşırı dengesiz kredi kartı işlemlerinde örnekleme, sınıf ağırlıkları ve karar eşiğinin etkisini karşılaştırmaktır. Deney girdisi olarak {meta['origin']} kullanılmıştır. İncelenen veri {meta['rows']} kayıt, {meta['fraud']} pozitif sınıf ve {meta['features']} model girdisi içerir. Pozitif oranı {meta['fraud_rate']:.6%} olarak hesaplanmıştır.
 
-Kaynak: https://www.openml.org/d/1597 . Dosya SHA-256: `{meta['source_sha256']}`.
+Veri seti kaydı: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud . Dosya SHA-256: `{meta['source_sha256']}`.
 
 ## Yöntem
 
@@ -41,11 +49,19 @@ Beş tekrarın ortalaması ± örneklem standart sapması aşağıdadır. AP, av
 
 {table(display)}
 
+LR için eşik 0,5 iken ortalama F1 {base.f1_mean:.4f}, iç doğrulamada seçilen eşikle {tuned.f1_mean:.4f} bulundu. İki yöntemin aynı olasılık sıralamasını kullanması nedeniyle AP değerleri eşittir. Sınıf ağırlıklı LR'nin ortalama duyarlılığı {by_model.loc['LR_weighted'].recall_mean:.4f} ve kesinliği {by_model.loc['LR_weighted'].precision_mean:.4f} oldu. SMOTE ile ortalama AP {by_model.loc['LR_SMOTE_0.10'].ap_mean:.4f}, rastgele alt örnekleme ile {by_model.loc['LR_RUS_0.10'].ap_mean:.4f} elde edildi.
+
 ## Kilitlenmiş nihai değerlendirme
 
 Geliştirmede seçilen yöntem: **{meta['selected_by_dev_cv_ap']}**. Test, seçilen yöntem ve önceden belirlenen LR baseline için final aşamasında değerlendirilmiştir. Test boyutu {meta['test_size']}, pozitif sayısı {meta['test_fraud']}.
 
 {table(final[['model','ap','precision','recall','f1','tp','fp','fn','tn','threshold']].round(6))}
+
+Seçilen yöntem bu test bölmesinde {int(winner.tp)} dolandırıcılık işlemini yakaladı, {int(winner.fn)} işlemi kaçırdı ve {int(winner.fp)} normal işlem için yanlış alarm verdi.
+
+Test AP değeri için özdeş kayıt gruplarına dayalı bootstrap yüzdelikleri:
+
+{table(intervals[['model','ci_low_2_5','ci_high_97_5','replicates']].round(4))}
 
 ## İstatistiksel yorum ve sınırlılıklar
 

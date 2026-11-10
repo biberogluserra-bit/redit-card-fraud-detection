@@ -1,6 +1,6 @@
 # Aşırı Dengesiz Veride Kredi Kartı Dolandırıcılığı Tespiti
 
-**Çalışma durumu (11 Kasım 2026):** Kod ve defter incelendi. Resmî OpenML metadata kaydına erişildi; ARFF aktarımı kesildi ve MD5 doğrulaması başarısız oldu. Parquet alternatifi ve kütüphane indirmeleri aşırı yavaşladığından durduruldu. **Gerçek deneyler ve uçtan uca sentetik test henüz çalıştırılmadı.** [7. hafta durum raporu](reports/7_hafta_durum_raporu.md) ve [15 yayınlık doğrulama kaydı](reports/kaynak_dogrulama.md) hazırdır.
+**Deney durumu:** Kullanıcının sağladığı creditcard.csv ile altı yöntemin beş tekrarı ve final test değerlendirmesi tamamlandı. [7. hafta ara raporu](reports/7_hafta_ara_raporu.md), [sonuç tablosu](reports/sonuc_tablosu.csv) ve [kaynak listesi](reports/kaynak_dogrulama.md) hazırdır.
 
 ## Google Colab'de tek seferde çalıştırma
 `Fraud_Project_Colab.ipynb` defterini Google Colab'e yükle, hücreleri sırayla çalıştır. Sistem OpenML #1597'yi indirir, deneyleri yürütür ve çıktıları zip olarak paketler.

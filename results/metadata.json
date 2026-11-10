@@ -1,0 +1,29 @@
+{
+  "origin": "data/creditcard.csv",
+  "rows": 284807,
+  "features": 29,
+  "fraud": 492,
+  "fraud_rate": 0.001727485630620034,
+  "duplicates": 9144,
+  "missing": 0,
+  "study_status": "REAL_DATA",
+  "conflicting_label_groups": 0,
+  "source_sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89",
+  "time_policy": "Raw OpenML ARFF includes Time; intentionally excluded. Random group benchmark, not temporal validation.",
+  "versions": {
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.7.2",
+    "imbalanced-learn": "0.14.0",
+    "matplotlib": "3.11.2"
+  },
+  "test_size": 57034,
+  "test_fraud": 98,
+  "selected_by_dev_cv_ap": "RF_balanced",
+  "cv_repetitions": 5,
+  "preprocessing": "StandardScaler fit only to fit subset in Pipeline; SMOTE/RUS fit subset only",
+  "test_policy": "Test reserved; winner selected by DEV validation AP only",
+  "cost_warning": "FP=1, FN=10 illustrative units only, NOT observed financial loss",
+  "caveats": "Time excluded by design; chronological sensitivity analysis remains future work; repeated correlated splits; no population representativeness established; supplied PCA cannot be refit without raw features"
+}

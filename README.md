@@ -35,7 +35,10 @@ Beş tekrar tam 5 katlı çapraz doğrulama değildir: beş farklı tohumla geli
 - `--smoke-test` sadece sentetik veride kod çalışırlığını sınar; gerçek deney yerine geçmez.
 
 ## Bilimsel etik ve kullanım
-Hoca yönergesindeki üretken yapay zekâ sınırlamasına uy. Hazırlanan metinler düzenlenebilir taslaktır; bilimsel yorumları, 15 tam metin makaleyi ve kodun sonuçlarını şahsen doğrula. Nihai rapora yapay zekâ kullanım beyanı ekle. PDF içinde deney sonuçları yer tutucudur. Gerçek çıktılar olmadan sonuç/üstünlük iddiası yazma.
+Hoca yönergesindeki üretken yapay zekâ sınırlamasına uy. Hazırlanan metinler düzenlenebilir taslaktır; bilimsel yorumları, 15 tam metin makaleyi ve kodun sonuçlarını şahsen doğrula. Nihai rapora yapay zekâ kullanım beyanı ekle. Son bildiri, gerçek deney tabloları ve üretken yapay zekâ kullanım beyanı içerir.
 
 ## Kaynak ve atıf
 OpenML #1597: https://www.openml.org/d/1597 . Orijinal veri: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud . Dataset citation: Dal Pozzolo et al. (2015), Calibrating Probability with Undersampling for Unbalanced Classification. Kaynak matrisi DOI bağlantılarını içerir.
+
+## 12. hafta teslimi
+[Altı sayfalık bildiri](reports/12_hafta_IEEE_bildiri.pdf), [düzenlenebilir Word dosyası](reports/12_hafta_IEEE_bildiri.docx), [sunum](reports/10_dakika_sunum.pptx) ve [literatür incelemesi](reports/literatur_inceleme.md).

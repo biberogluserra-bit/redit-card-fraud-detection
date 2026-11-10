@@ -1,0 +1,3 @@
+model,metric,ci_low_2_5,ci_high_97_5,replicates,note
+LR_base,AP,0.6624467808437439,0.8695077495616236,200,Exploratory grouped holdout bootstrap; not population CI
+RF_balanced,AP,0.7698851603743336,0.9297078697765612,200,Exploratory grouped holdout bootstrap; not population CI

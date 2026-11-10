@@ -1,6 +1,6 @@
 # Aşırı Dengesiz Veride Kredi Kartı Dolandırıcılığı Tespiti
 
-**Çalışma durumu:** Araştırma önerisi onaylandı. Gerçek OpenML 1597 ham verisi bu üretim ortamına alınamadığından **model performansı sonuçları henüz hesaplanmadı**. Bu paket deneyleri tek komutla çalıştıracak betik, Colab defteri, literatür matrisi ayrı bir çalışma dosyasında; sonuçlar için dürüstçe işaretlenmiş bildiri/sunum taslaklarını içerir. Depoda Python kodu ve Colab defteri yer almaktadır. **SENTETİK teknik test sonuçları araştırma bulgusu değildir.**
+**Çalışma durumu (11 Kasım 2026):** Kod ve defter incelendi. Resmî OpenML metadata kaydına erişildi; ARFF aktarımı kesildi ve MD5 doğrulaması başarısız oldu. Parquet alternatifi ve kütüphane indirmeleri aşırı yavaşladığından durduruldu. **Gerçek deneyler ve uçtan uca sentetik test henüz çalıştırılmadı.** [7. hafta durum raporu](reports/7_hafta_durum_raporu.md) ve [15 yayınlık doğrulama kaydı](reports/kaynak_dogrulama.md) hazırdır.
 
 ## Google Colab'de tek seferde çalıştırma
 `Fraud_Project_Colab.ipynb` defterini Google Colab'e yükle, hücreleri sırayla çalıştır. Sistem OpenML #1597'yi indirir, deneyleri yürütür ve çıktıları zip olarak paketler.
@@ -14,6 +14,10 @@ python code/run_experiment.py --data data/creditcard.csv --out results
 ```
 
 ## Çıktılar
+Tam resmî ARFF dosyasını `data/creditcard.arff` konumuna indirdikten sonra önce `python code/verify_source.py` ve ayrı klasörde sentetik test çalıştırılmalıdır. Ardından `python code/run_experiment.py --data data/creditcard.arff --out results` ve `python code/build_report.py` gerçek raporu üretir. Eksik dosyayı kullanmayın. Yeni çıktı klasörü, test setine bakılarak yeniden ayar yapılmasını bilimsel olarak meşrulaştırmaz.
+
+Beş tekrar tam 5 katlı çapraz doğrulama değildir: beş farklı tohumla geliştirme bölmesi karşılaştırmasıdır. AP eşitliğinde model seçimi doğrulama F1 değerine dayanır.
+
 - `results/metadata.json`: veri özeti ve yöntem beyanı
 - `results/cv_repeated_results.csv`: 5 tekrarın her model için ölçümleri
 - `results/cv_summary.csv`: ortalama / std, karşılaştırma tablosu

@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import warnings
+import importlib.metadata
 
 import numpy as np
 import pandas as pd
@@ -46,7 +47,15 @@ def get_data(local=None,smoke=False):
         y=np.concatenate([y,y[:45]])
         return X,pd.Series(y,name='Class'), 'SYNTHETIC SMOKE TEST ONLY'
     if local is not None:
-        df=pd.read_csv(local)
+        if Path(local).suffix.lower() in ['.pq','.parquet']:
+            df=pd.read_parquet(local)
+        elif Path(local).suffix.lower()=='.arff':
+            from scipy.io import arff
+            data,_=arff.loadarff(local)
+            df=pd.DataFrame(data)
+            df['Class']=df['Class'].str.decode('ascii')
+        else:
+            df=pd.read_csv(local)
         origin=str(local)
     else:
         try:
@@ -62,9 +71,12 @@ def get_data(local=None,smoke=False):
         origin='OpenML ID 1597, downloaded during execution'
     missing=set(FEATURES+['Class'])-set(df.columns)
     if missing: raise ValueError(f'Missing dataset columns: {missing}')
-    # OpenML 1597 omits Time; drop original Time if CSV was supplied.
+    # Raw OpenML ARFF contains Time as row identifier. Exclude by design.
     X=df[FEATURES].apply(pd.to_numeric,errors='raise').astype('float64')
-    y=pd.to_numeric(df['Class'],errors='raise').astype(int)
+    target=pd.to_numeric(df['Class'],errors='raise')
+    if not target.isin([0,1]).all(): raise ValueError('Invalid target labels')
+    y=target.astype(int)
+    if not np.isfinite(X.to_numpy()).all(): raise ValueError('Non-finite features')
     if set(y.unique())!={0,1}: raise ValueError('Expected both class labels 0 and 1.')
     if X.isna().sum().sum()!=0 or y.isna().sum()!=0: raise ValueError('Missing values!')
     return X.reset_index(drop=True),y.reset_index(drop=True),origin
@@ -96,6 +108,7 @@ def grouping(X):
 def group_split(X,y,groups,seed=42,n_splits=5):
     splitter=StratifiedGroupKFold(n_splits=n_splits,shuffle=True,random_state=seed)
     tr,ev=next(splitter.split(X,y,groups))
+    assert not np.intersect1d(groups[tr],groups[ev]).size, 'Group leakage'
     if y.iloc[tr].nunique()!=2 or y.iloc[ev].nunique()!=2:
         raise RuntimeError('A split lost one label; change fold seed or grouping policy.')
     return tr,ev
@@ -121,17 +134,26 @@ def score(y,prob,threshold=.5):
 
 def execute(out_dir,local=None,smoke=False):
     out=Path(out_dir);out.mkdir(parents=True,exist_ok=True)
+    if (out/'final_untouched_test_results.csv').exists():
+        raise RuntimeError('Final results already exist. Use a fresh output directory; do not retune on a viewed test set.')
     X,y,origin=get_data(local,smoke)
     groups=grouping(X)
+    conflicts=pd.DataFrame({'group':groups,'y':y}).groupby('group').y.nunique()
     summary_meta=dict(origin=origin,rows=len(y),features=len(FEATURES),fraud=int(y.sum()),
            fraud_rate=float(y.mean()),duplicates=int(X.duplicated().sum()),
            missing=int(X.isna().sum().sum()),study_status=('TECHNICAL_SMOKE_TEST_ONLY' if smoke else 'REAL_DATA'))
+    summary_meta['conflicting_label_groups']=int((conflicts>1).sum())
+    summary_meta['source_sha256']=(hashlib.sha256(Path(local).read_bytes()).hexdigest() if local else None)
+    summary_meta['time_policy']='Raw OpenML ARFF includes Time; intentionally excluded. Random group benchmark, not temporal validation.'
+    summary_meta['versions']={p:importlib.metadata.version(p) for p in ['numpy','pandas','scipy','scikit-learn','imbalanced-learn','matplotlib']}
+    (out/'audit_before_training.json').write_text(json.dumps(summary_meta,indent=2),encoding='utf-8')
     # Hold-out test is segregated once, before any preprocessing or balancing.
     dev_ix,test_ix=group_split(X,y,groups,seed=42,n_splits=5)
     Xdev,ydev=X.iloc[dev_ix].reset_index(drop=True),y.iloc[dev_ix].reset_index(drop=True)
     gdev=groups[dev_ix]
     Xtest,ytest=X.iloc[test_ix],y.iloc[test_ix]
     summary_meta['test_size']=int(len(test_ix));summary_meta['test_fraud']=int(ytest.sum())
+    np.savez_compressed(out/'split_indices.npz',development=dev_ix,test=test_ix)
     records=[]
     run_seeds=SEEDS[:3] if smoke else SEEDS
     for seed in run_seeds:
@@ -144,6 +166,7 @@ def execute(out_dir,local=None,smoke=False):
         Xfit,yfit=xin.iloc[itr],yin.iloc[itr]
         Xcal,ycal=xin.iloc[ical],yin.iloc[ical]
         Xval,yval=Xdev.iloc[oval],ydev.iloc[oval]
+        np.savez_compressed(out/f'development_split_{seed}.npz',fit=dev_ix[otr[itr]],calibration=dev_ix[otr[ical]],validation=dev_ix[oval])
         fitted={}
         for name in MODELS:
             base='LR_base' if name=='LR_threshold_F1' else name
@@ -158,6 +181,7 @@ def execute(out_dir,local=None,smoke=False):
             metrics=score(yval,model.predict_proba(Xval)[:,1],threshold)
             records.append(dict(seed=seed,model=name,train_n=len(Xfit),
                  calibration_n=len(Xcal),validation_n=len(Xval),validation_frauds=int(yval.sum()),**metrics))
+            pd.DataFrame(records).to_csv(out/'development_checkpoint.csv',index=False)
         print('Finished seed',seed,flush=True)
     raw=pd.DataFrame(records)
     raw.to_csv(out/'cv_repeated_results.csv',index=False)
@@ -166,7 +190,8 @@ def execute(out_dir,local=None,smoke=False):
     mean.columns=['_'.join(x) for x in mean.columns]
     mean=mean.sort_values('ap_mean',ascending=False)
     mean.to_csv(out/'cv_summary.csv',float_format='%.6f')
-    winner=str(mean.index[0])
+    # AP is invariant to threshold: resolve ranking ties using validation F1.
+    winner=str(mean.sort_values(['ap_mean','f1_mean'],ascending=False).index[0])
     # Pair-wise testing on five DEV splits: exploratory, non-independent folds.
     tests=[]
     baseline=raw[raw.model=='LR_base'].set_index('seed')
@@ -174,9 +199,11 @@ def execute(out_dir,local=None,smoke=False):
         if name=='LR_base':continue
         candidate=raw[raw.model==name].set_index('seed')
         differences=(candidate.loc[baseline.index,'ap']-baseline['ap']).values
-        try: p=float(wilcoxon(differences,zero_method='wilcox',alternative='two-sided').pvalue)
+        try: p=(1.0 if np.allclose(differences,0) else float(wilcoxon(differences,zero_method='wilcox',alternative='two-sided').pvalue))
         except ValueError:p=None
         tests.append(dict(model=name,vs='LR_base',mean_delta_ap=float(differences.mean()),
+                    std_delta_ap=float(differences.std(ddof=1)),
+                    interpretation='Descriptive only: overlapping repeated splits, n=5; no confirmatory significance claim',
                     paired_effect_size_dz=(float(differences.mean()/differences.std(ddof=1))
                                            if len(differences)>1 and differences.std(ddof=1)>1e-12 else None),
                     wilcoxon_p_unadjusted=(p if p is not None and np.isfinite(p) else None),n=len(differences)))
@@ -228,7 +255,7 @@ def execute(out_dir,local=None,smoke=False):
     summary_meta['preprocessing']='StandardScaler fit only to fit subset in Pipeline; SMOTE/RUS fit subset only'
     summary_meta['test_policy']='Test reserved; winner selected by DEV validation AP only'
     summary_meta['cost_warning']='FP=1, FN=10 illustrative units only, NOT observed financial loss'
-    summary_meta['caveats']='No Time in OpenML 1597; no chronological holdout possible; repeated correlated splits; no population representativeness established'
+    summary_meta['caveats']='Time excluded by design; chronological sensitivity analysis remains future work; repeated correlated splits; no population representativeness established; supplied PCA cannot be refit without raw features'
     (out/'metadata.json').write_text(json.dumps(summary_meta,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'status':summary_meta['study_status'],'winner':winner,'final':final},ensure_ascii=False,indent=2))
     return out
@@ -240,3 +267,4 @@ if __name__=='__main__':
     a.add_argument('--smoke-test',action='store_true')
     args=a.parse_args()
     execute(args.out,args.data,args.smoke_test)
+

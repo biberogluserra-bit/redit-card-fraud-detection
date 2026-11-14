@@ -1,0 +1,18 @@
+{
+  "metric": "AP",
+  "blocks": 5,
+  "methods": 6,
+  "friedman_chi2": 21.23529411764705,
+  "df": 5,
+  "asymptotic_p": 0.0007311898902616365,
+  "critical_distance_05": 3.3718169241488285,
+  "average_rank": {
+    "LR_RUS_0.10": 5.8,
+    "LR_SMOTE_0.10": 3.0,
+    "LR_base": 2.9,
+    "LR_threshold_F1": 2.9,
+    "LR_weighted": 5.2,
+    "RF_balanced": 1.2
+  },
+  "scope": "Exploratory: overlapping splits of one dataset; tied ranks averaged. Cliff compares marginal scores."
+}

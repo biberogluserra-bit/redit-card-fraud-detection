@@ -1,0 +1,6 @@
+model,vs,mean_delta_ap,std_delta_ap,interpretation,paired_effect_size_dz,wilcoxon_p_unadjusted,n
+LR_weighted,LR_base,-0.022128673116180386,0.014071883704930543,"Descriptive only: overlapping repeated splits, n=5; no confirmatory significance claim",-1.572545195809633,0.0625,5
+LR_SMOTE_0.10,LR_base,-0.0074825211595654475,0.014369850044564227,"Descriptive only: overlapping repeated splits, n=5; no confirmatory significance claim",-0.5207097594171421,0.4375,5
+LR_RUS_0.10,LR_base,-0.05359854475853976,0.050553927413325754,"Descriptive only: overlapping repeated splits, n=5; no confirmatory significance claim",-1.0602251397862998,0.0625,5
+LR_threshold_F1,LR_base,0.0,0.0,"Descriptive only: overlapping repeated splits, n=5; no confirmatory significance claim",,1.0,5
+RF_balanced,LR_base,0.05824434877610636,0.044435529059131534,"Descriptive only: overlapping repeated splits, n=5; no confirmatory significance claim",1.3107607810542565,0.0625,5

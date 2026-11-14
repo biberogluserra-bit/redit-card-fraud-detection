@@ -1,6 +1,6 @@
 # Aşırı Dengesiz Veride Kredi Kartı Dolandırıcılığı Tespiti
 
-**Çalışma durumu:** Araştırma önerisi onaylandı. Gerçek OpenML 1597 ham verisi bu üretim ortamına alınamadığından **model performansı sonuçları henüz hesaplanmadı**. Bu paket deneyleri tek komutla çalıştıracak betik, Colab defteri, literatür matrisi ayrı bir çalışma dosyasında; sonuçlar için dürüstçe işaretlenmiş bildiri/sunum taslaklarını içerir. Depoda Python kodu ve Colab defteri yer almaktadır. **SENTETİK teknik test sonuçları araştırma bulgusu değildir.**
+**Deney durumu:** Kullanıcının sağladığı creditcard.csv ile altı yöntemin beş tekrarı ve final test değerlendirmesi tamamlandı. [7. hafta ara raporu](reports/7_hafta_ara_raporu.md), [sonuç tablosu](reports/sonuc_tablosu.csv) ve [kaynak listesi](reports/kaynak_dogrulama.md) hazırdır.
 
 ## Google Colab'de tek seferde çalıştırma
 `Fraud_Project_Colab.ipynb` defterini Google Colab'e yükle, hücreleri sırayla çalıştır. Sistem OpenML #1597'yi indirir, deneyleri yürütür ve çıktıları zip olarak paketler.
@@ -14,6 +14,10 @@ python code/run_experiment.py --data data/creditcard.csv --out results
 ```
 
 ## Çıktılar
+Tam resmî ARFF dosyasını `data/creditcard.arff` konumuna indirdikten sonra önce `python code/verify_source.py` ve ayrı klasörde sentetik test çalıştırılmalıdır. Ardından `python code/run_experiment.py --data data/creditcard.arff --out results` ve `python code/build_report.py` gerçek raporu üretir. Eksik dosyayı kullanmayın. Yeni çıktı klasörü, test setine bakılarak yeniden ayar yapılmasını bilimsel olarak meşrulaştırmaz.
+
+Beş tekrar tam 5 katlı çapraz doğrulama değildir: beş farklı tohumla geliştirme bölmesi karşılaştırmasıdır. AP eşitliğinde model seçimi doğrulama F1 değerine dayanır.
+
 - `results/metadata.json`: veri özeti ve yöntem beyanı
 - `results/cv_repeated_results.csv`: 5 tekrarın her model için ölçümleri
 - `results/cv_summary.csv`: ortalama / std, karşılaştırma tablosu
@@ -31,7 +35,10 @@ python code/run_experiment.py --data data/creditcard.csv --out results
 - `--smoke-test` sadece sentetik veride kod çalışırlığını sınar; gerçek deney yerine geçmez.
 
 ## Bilimsel etik ve kullanım
-Hoca yönergesindeki üretken yapay zekâ sınırlamasına uy. Hazırlanan metinler düzenlenebilir taslaktır; bilimsel yorumları, 15 tam metin makaleyi ve kodun sonuçlarını şahsen doğrula. Nihai rapora yapay zekâ kullanım beyanı ekle. PDF içinde deney sonuçları yer tutucudur. Gerçek çıktılar olmadan sonuç/üstünlük iddiası yazma.
+Hoca yönergesindeki üretken yapay zekâ sınırlamasına uy. Hazırlanan metinler düzenlenebilir taslaktır; bilimsel yorumları, 15 tam metin makaleyi ve kodun sonuçlarını şahsen doğrula. Nihai rapora yapay zekâ kullanım beyanı ekle. Son bildiri, gerçek deney tabloları ve üretken yapay zekâ kullanım beyanı içerir.
 
 ## Kaynak ve atıf
 OpenML #1597: https://www.openml.org/d/1597 . Orijinal veri: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud . Dataset citation: Dal Pozzolo et al. (2015), Calibrating Probability with Undersampling for Unbalanced Classification. Kaynak matrisi DOI bağlantılarını içerir.
+
+## 12. hafta teslimi
+[Altı sayfalık bildiri](reports/12_hafta_IEEE_bildiri.pdf), [düzenlenebilir Word dosyası](reports/12_hafta_IEEE_bildiri.docx), [sunum](reports/10_dakika_sunum.pptx) ve [literatür incelemesi](reports/literatur_inceleme.md).
